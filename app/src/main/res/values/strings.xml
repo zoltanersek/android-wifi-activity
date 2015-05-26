@@ -1,0 +1,9 @@
+<resources>
+    <string name="wifi_disabled">WIFI is switched off. Enable?</string>
+    <string name="enable_wifi">Enable WIFI</string>
+    <string name="exit_app">Exit application</string>
+    <string name="wifi_not_found">Network %s not found.</string>
+    <string name="wifi_not_connected">Could not connect to %s</string>
+    <string name="connecting_to_wifi">Connecting to WiFi: %s</string>
+    <string name="connecting">Connecting...</string>
+</resources>
