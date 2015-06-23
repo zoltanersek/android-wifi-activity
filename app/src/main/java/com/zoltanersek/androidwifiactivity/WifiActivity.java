@@ -1,6 +1,5 @@
 package com.zoltanersek.androidwifiactivity;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -17,6 +16,8 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.provider.Settings;
 
+import com.zoltanersek.androidwifiactivity.R;
+
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,14 +28,15 @@ import java.util.concurrent.TimeUnit;
  * Subclass this activity when you want to force the connection to a specific wifi network at
  * the start of the activity
  */
-public abstract class WifiActivity extends Activity {
+public abstract class WifiBaseActivity extends Activity{
+
     public static final String PSK = "PSK";
     public static final String WEP = "WEP";
     public static final String OPEN = "Open";
 
     private static final int REQUEST_ENABLE_WIFI = 10;
 
-    private static final ScheduledExecutorService worker =
+    private final ScheduledExecutorService worker =
             Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture taskHandler;
 
@@ -44,26 +46,29 @@ public abstract class WifiActivity extends Activity {
 
     /**
      * Get the timeout in seconds for connecting to the wifi network
+     *
      * @return wifi network connection timeout
      */
     protected abstract int getSecondsTimeout();
 
     /**
      * Get the SSID of the wifi network
+     *
      * @return SSID of wifi network to connect to
      */
     protected abstract String getWifiSSID();
 
     /**
      * Get the password/key of the wifi network
-     * @return password/key of wifi network
+     *
+     * @return passwork/key of wifi network
      */
     protected abstract String getWifiPass();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        handleWIFI();
+        //handleWIFI();
     }
 
     /**
@@ -124,7 +129,7 @@ public abstract class WifiActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_ENABLE_WIFI && resultCode == 0) {
             WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
-            if (wifi.isWifiEnabled()) {
+            if (wifi.isWifiEnabled() || wifi.getWifiState() == WifiManager.WIFI_STATE_ENABLING) {
                 connectToSpecificNetwork();
             } else {
                 finish();
@@ -186,10 +191,10 @@ public abstract class WifiActivity extends Activity {
      */
     private class ScanReceiver extends BroadcastReceiver {
 
-        WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
             List<ScanResult> scanResultList = wifi.getScanResults();
             boolean found = false;
             String security = null;
@@ -204,7 +209,7 @@ public abstract class WifiActivity extends Activity {
                 if (progressDialog != null) {
                     progressDialog.dismiss();
                 }
-                new AlertDialog.Builder(WifiActivity.this)
+                new AlertDialog.Builder(WifiBaseActivity.this)
                         .setCancelable(false)
                         .setMessage(String.format(getString(R.string.wifi_not_found), getWifiSSID()))
                         .setPositiveButton(getString(R.string.exit_app), new DialogInterface.OnClickListener() {
@@ -258,8 +263,12 @@ public abstract class WifiActivity extends Activity {
             NetworkInfo networkInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
             WifiInfo wifiInfo = wifi.getConnectionInfo();
             if (networkInfo.isConnected() && wifiInfo.getSSID().replace("\"", "").equals(getWifiSSID())) {
-                unregisterReceiver(connectionReceiver);
-                WifiActivity.this.runOnUiThread(new Runnable() {
+                try {
+                    unregisterReceiver(connectionReceiver);
+                } catch (Exception ex) {
+                    // ignore if receiver already unregistered
+                }
+                WifiBaseActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         if (progressDialog != null) {
@@ -268,14 +277,18 @@ public abstract class WifiActivity extends Activity {
                     }
                 });
             } else {
-                unregisterReceiver(connectionReceiver);
-                WifiActivity.this.runOnUiThread(new Runnable() {
+                try {
+                    unregisterReceiver(connectionReceiver);
+                } catch (Exception ex) {
+                    // ignore if receiver already unregistered
+                }
+                WifiBaseActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         if (progressDialog != null) {
                             progressDialog.dismiss();
                         }
-                        new AlertDialog.Builder(WifiActivity.this)
+                        new AlertDialog.Builder(WifiBaseActivity.this)
                                 .setCancelable(false)
                                 .setMessage(String.format(getString(R.string.wifi_not_connected), getWifiSSID()))
                                 .setPositiveButton(getString(R.string.exit_app), new DialogInterface.OnClickListener() {
@@ -290,5 +303,6 @@ public abstract class WifiActivity extends Activity {
             }
         }
     }
+
 
 }
