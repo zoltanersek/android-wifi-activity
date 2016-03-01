@@ -150,7 +150,7 @@ public abstract class WifiBaseActivity extends Activity{
         if (networkInfo.isConnected() && wifiInfo.getSSID().replace("\"", "").equals(getWifiSSID())) {
             return;
         }
-        esle{
+        else {
             wifi.disconnect();
         }
         progressDialog = ProgressDialog.show(this, getString(R.string.connecting), String.format(getString(R.string.connecting_to_wifi), getWifiSSID()));
