@@ -205,6 +205,7 @@ public abstract class WifiBaseActivity extends Activity{
                 if (scanResult.SSID.equals(getWifiSSID())) {
                     security = getScanResultSecurity(scanResult);
                     found = true;
+                    break; // found don't need continue
                 }
             }
             if (!found) {
