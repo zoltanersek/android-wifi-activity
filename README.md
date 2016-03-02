@@ -8,7 +8,7 @@ Is necessary add in your AndroidManifest.
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
 
-### Using class WifiBaseActivity
+### Use class WifiBaseActivity
 
 ```
 public class MainActivity extends WifiBaseActivity {
@@ -40,7 +40,7 @@ public class MainActivity extends WifiBaseActivity {
 
 ```
 
-### Using interface WifiBaseListener
+### Use interface WifiBaseListener
 
 ```
   public class MainActivity extends FragmentActivity implements WifiBase.WifiBaseListener {
