@@ -44,6 +44,7 @@ public class MainActivity extends WifiBaseActivity {
 
 ```
   public class MainActivity extends FragmentActivity implements WifiBase.WifiBaseListener {
+  
     private static final int TIMEOUT = 5;
     private WifiBase mWifiBase;
 
