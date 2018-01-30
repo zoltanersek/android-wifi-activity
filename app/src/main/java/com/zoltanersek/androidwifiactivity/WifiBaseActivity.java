@@ -1,5 +1,7 @@
 package com.zoltanersek.androidwifiactivity;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -7,14 +9,20 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.view.ContextThemeWrapper;
 
 import com.zoltanersek.androidwifiactivity.R;
 
@@ -28,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  * Subclass this activity when you want to force the connection to a specific wifi network at
  * the start of the activity
  */
-public abstract class WifiBaseActivity extends Activity{
+public abstract class WifiBaseActivity extends Activity {
 
     public static final String PSK = "PSK";
     public static final String WEP = "WEP";
@@ -75,11 +83,18 @@ public abstract class WifiBaseActivity extends Activity{
      * Start connecting to specific wifi network
      */
     protected void handleWIFI() {
-        WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
-        if (wifi.isWifiEnabled()) {
-            connectToSpecificNetwork();
-        } else {
+        WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        if (!wifi.isWifiEnabled()) {
             showWifiDisabledDialog();
+        }
+        else {
+            if (!permisionLocationOn()) {
+                setLocationPermission();
+            } else {
+                if (checkLocationTurnOn()) {
+                    connectToSpecificNetwork();
+                }
+            }
         }
     }
 
@@ -105,6 +120,53 @@ public abstract class WifiBaseActivity extends Activity{
                 })
                 .show();
     }
+    private Boolean permisionLocationOn() {
+        boolean permissionGranted = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        if (permissionGranted) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    private void setLocationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1001);
+        }
+
+    }
+
+    private Boolean checkLocationTurnOn(){
+        boolean onLocation=true;
+        boolean permissionGranted = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && permissionGranted) {
+            LocationManager lm = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
+            boolean gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            if(!gps_enabled){
+                onLocation =false;
+                AlertDialog.Builder dialog = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.Theme_AppCompat_Dialog));
+                //android.support.v7.app.AlertDialog.Builder dialog = new android.support.v7.app.AlertDialog.Builder(this);
+                dialog.setMessage("Please turn on your location");
+                dialog.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                        Intent myIntent = new Intent( Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivity(myIntent);
+                    }
+                });
+                dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+
+                    }
+                });
+                dialog.show();
+            }
+        }
+        return onLocation;
+    }
+
+
 
     /**
      * Get the security type of the wireless network
@@ -128,7 +190,7 @@ public abstract class WifiBaseActivity extends Activity{
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_ENABLE_WIFI && resultCode == 0) {
-            WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
+            WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
             if (wifi.isWifiEnabled() || wifi.getWifiState() == WifiManager.WIFI_STATE_ENABLING) {
                 connectToSpecificNetwork();
             } else {
@@ -143,7 +205,7 @@ public abstract class WifiBaseActivity extends Activity{
      * Start to connect to a specific wifi network
      */
     private void connectToSpecificNetwork() {
-        final WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
+        final WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         WifiInfo wifiInfo = wifi.getConnectionInfo();
@@ -166,7 +228,7 @@ public abstract class WifiBaseActivity extends Activity{
      */
     private class ConnectionReceiver extends BroadcastReceiver {
 
-        WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
+        WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 
 
         @Override
@@ -197,7 +259,7 @@ public abstract class WifiBaseActivity extends Activity{
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
+            WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
             List<ScanResult> scanResultList = wifi.getScanResults();
             boolean found = false;
             String security = null;
@@ -247,11 +309,13 @@ public abstract class WifiBaseActivity extends Activity{
                 intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
                 intentFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
                 registerReceiver(connectionReceiver, intentFilter);
+                int networkId = wifi.getConnectionInfo().getNetworkId();
+                wifi.removeNetwork(networkId);
                 int netId = wifi.addNetwork(conf);
-                wifi.disconnect();
                 wifi.enableNetwork(netId, true);
                 wifi.reconnect();
                 unregisterReceiver(this);
+
             }
         }
     }
@@ -262,7 +326,7 @@ public abstract class WifiBaseActivity extends Activity{
     private class TimeoutTask implements Runnable {
         @Override
         public void run() {
-            WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
+            WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
             ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
             WifiInfo wifiInfo = wifi.getConnectionInfo();
