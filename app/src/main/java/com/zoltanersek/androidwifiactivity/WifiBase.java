@@ -88,7 +88,7 @@ public class WifiBase {
      * Start connecting to specific wifi network
      */
     protected void handleWIFI() {
-        WifiManager wifi = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifi = (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (wifi.isWifiEnabled()) {
             connectToSpecificNetwork();
         } else {
@@ -155,7 +155,7 @@ public class WifiBase {
      * Start to connect to a specific wifi network
      */
     private void connectToSpecificNetwork() {
-        final WifiManager wifi = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
+        final WifiManager wifi = (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         ConnectivityManager cm = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         WifiInfo wifiInfo = wifi.getConnectionInfo();
@@ -178,7 +178,7 @@ public class WifiBase {
      */
     private class ConnectionReceiver extends BroadcastReceiver {
 
-        WifiManager wifi = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifi = (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
 
         @Override

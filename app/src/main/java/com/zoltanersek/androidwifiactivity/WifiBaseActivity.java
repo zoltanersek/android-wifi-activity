@@ -309,11 +309,14 @@ public abstract class WifiBaseActivity extends Activity {
                 intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
                 intentFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
                 registerReceiver(connectionReceiver, intentFilter);
-                int networkId = wifi.getConnectionInfo().getNetworkId();
-                wifi.removeNetwork(networkId);
+                List<WifiConfiguration> list = wifi.getConfiguredNetworks();
+                for( WifiConfiguration i : list ) {
+                    wifi.removeNetwork(i.networkId);
+                    wifi.saveConfiguration();
+                }
                 int netId = wifi.addNetwork(conf);
                 wifi.enableNetwork(netId, true);
-                wifi.reconnect();
+                wifi.reassociate();
                 unregisterReceiver(this);
 
             }

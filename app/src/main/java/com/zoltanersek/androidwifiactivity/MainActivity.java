@@ -44,8 +44,10 @@ public class MainActivity extends WifiBaseActivity  {
         EditText wifiSSIDName = (EditText) findViewById(R.id.wifiSSIDName);
         EditText wifiSSIDPass = (EditText) findViewById(R.id.wifiSSIDPass);
 
-       wifiSSID = wifiSSIDName.getText().toString();
-       wifiPass = wifiSSIDPass.getText().toString();
+       // wifiSSID = wifiSSIDName.getText().toString();
+       // wifiPass = wifiSSIDPass.getText().toString();
+        wifiSSID = "AndroidTablet";
+        wifiPass = "11111111";
         handleWIFI();
     }
 
