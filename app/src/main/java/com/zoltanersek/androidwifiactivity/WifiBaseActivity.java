@@ -316,7 +316,7 @@ public abstract class WifiBaseActivity extends Activity {
                 }
                 int netId = wifi.addNetwork(conf);
                 wifi.enableNetwork(netId, true);
-                wifi.reassociate();
+                wifi.reconnect();
                 unregisterReceiver(this);
 
             }

@@ -38,16 +38,13 @@ public class MainActivity extends WifiBaseActivity  {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-       // handleWIFI();
+
     }
     public void onClick(View view){
         EditText wifiSSIDName = (EditText) findViewById(R.id.wifiSSIDName);
         EditText wifiSSIDPass = (EditText) findViewById(R.id.wifiSSIDPass);
-
-       // wifiSSID = wifiSSIDName.getText().toString();
-       // wifiPass = wifiSSIDPass.getText().toString();
-        wifiSSID = "AndroidTablet";
-        wifiPass = "11111111";
+        wifiSSID = wifiSSIDName.getText().toString();
+        wifiPass = wifiSSIDPass.getText().toString();
         handleWIFI();
     }
 
