@@ -87,3 +87,5 @@ public class MainActivity extends WifiBaseActivity {
   
   }
 ```
+
+Attention! This version have incorrect work on hotspot without internet on android Oreo.
